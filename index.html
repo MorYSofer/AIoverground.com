@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Overground — Daily AI Updates on WhatsApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --ink:       #0a0a0a;
+      --ink-60:    rgba(10,10,10,0.6);
+      --ink-20:    rgba(10,10,10,0.12);
+      --paper:     #fafaf8;
+      --paper-alt: #f2f2ef;
+      --wa-green:  #25d366;
+      --wa-dark:   #128c4e;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-sans:    'Inter', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-weight: 400;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── SVG grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* ── Typography ── */
+    .display {
+      font-family: var(--font-display);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+    }
+
+    .display-italic {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-style: italic;
+      letter-spacing: -0.02em;
+    }
+
+    .label {
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-60);
+    }
+
+    /* ── Divider ── */
+    .rule {
+      border: none;
+      border-top: 1px solid var(--ink-20);
+    }
+
+    /* ── CTA Button ── */
+    .btn-join {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      background-color: var(--wa-green);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      padding: 0.875rem 2rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      box-shadow:
+        0 2px 4px rgba(37,211,102,0.15),
+        0 8px 24px rgba(37,211,102,0.25),
+        0 20px 48px rgba(37,211,102,0.12);
+      transition:
+        transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+        box-shadow 0.22s cubic-bezier(0.34,1.56,0.64,1),
+        background-color 0.18s ease;
+      will-change: transform;
+    }
+    .btn-join:hover {
+      background-color: var(--wa-dark);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow:
+        0 4px 8px rgba(18,140,78,0.2),
+        0 16px 36px rgba(18,140,78,0.3),
+        0 32px 64px rgba(18,140,78,0.15);
+    }
+    .btn-join:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 2px 8px rgba(37,211,102,0.2);
+    }
+    .btn-join:focus-visible {
+      outline: 2px solid var(--wa-green);
+      outline-offset: 4px;
+    }
+
+    /* ── Feature card ── */
+    .feature-card {
+      border-top: 1px solid var(--ink-20);
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+      transition: opacity 0.2s ease;
+    }
+    .feature-card:last-child { border-bottom: 1px solid var(--ink-20); }
+
+    /* ── Scroll-reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition:
+        opacity 0.65s cubic-bezier(0.22,1,0.36,1),
+        transform 0.65s cubic-bezier(0.22,1,0.36,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Pulse ring on WhatsApp icon ── */
+    .wa-icon-wrap {
+      position: relative;
+      display: inline-flex;
+    }
+    .wa-ring {
+      position: absolute;
+      inset: -4px;
+      border-radius: 9999px;
+      border: 2px solid rgba(37,211,102,0.5);
+      animation: pulse-ring 2.4s cubic-bezier(0.22,1,0.36,1) infinite;
+    }
+    @keyframes pulse-ring {
+      0%   { opacity: 0.8; transform: scale(1); }
+      70%  { opacity: 0; transform: scale(1.7); }
+      100% { opacity: 0; transform: scale(1.7); }
+    }
+
+    /* ── Ticker ── */
+    .ticker-track {
+      display: flex;
+      gap: 3rem;
+      animation: ticker 22s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .ticker-wrap { overflow: hidden; }
+
+    /* ── Invert section ── */
+    .invert-section {
+      background-color: var(--ink);
+      color: var(--paper);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════
+       NAV
+  ════════════════════════════════ -->
+  <nav class="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+    <span class="display" style="font-size:1.125rem; letter-spacing:-0.01em;">AI Overground</span>
+    <a href="https://tinyurl.com/mzds6sc8" target="_blank" rel="noopener noreferrer"
+       class="btn-join" style="padding:0.55rem 1.25rem; font-size:0.8125rem;">
+      <span class="wa-icon-wrap">
+        <span class="wa-ring"></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.306A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.96 7.96 0 01-4.073-1.117l-.29-.173-3.007.789.803-2.927-.19-.302A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"/></svg>
+      </span>
+      Join free
+    </a>
+  </nav>
+
+  <!-- ════════════════════════════════
+       HERO
+  ════════════════════════════════ -->
+  <header class="max-w-6xl mx-auto px-6 pt-16 pb-24 md:pt-24 md:pb-36">
+    <div class="reveal">
+      <p class="label mb-6">WhatsApp Channel · Free · Daily</p>
+    </div>
+
+    <h1 class="display reveal" style="font-size: clamp(3.5rem, 10vw, 8.5rem); max-width: 16ch;">
+      The AI news<br />
+      <span class="display-italic">that matters.</span>
+    </h1>
+
+    <p class="reveal mt-8 text-base md:text-lg max-w-xl" style="color:var(--ink-60); line-height:1.75; font-weight:300; delay: 0.1s;">
+      AI Overground is your daily WhatsApp briefing on what's actually moving in artificial intelligence — models, tools, research, and the stories worth your attention.
+    </p>
+
+    <div class="reveal mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+      <a href="https://tinyurl.com/mzds6sc8" target="_blank" rel="noopener noreferrer" class="btn-join">
+        <span class="wa-icon-wrap">
+          <span class="wa-ring"></span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.306A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.96 7.96 0 01-4.073-1.117l-.29-.173-3.007.789.803-2.927-.19-.302A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"/></svg>
+        </span>
+        Join AI Overground on WhatsApp
+      </a>
+      <p class="label" style="color:var(--ink-60);">No spam. Unsubscribe anytime.</p>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════
+       TICKER
+  ════════════════════════════════ -->
+  <div class="invert-section py-4 ticker-wrap select-none">
+    <div class="ticker-track label" style="color:rgba(250,250,248,0.45); font-size:0.625rem; gap:2.5rem;">
+      <span>GPT-5 Released</span><span>·</span>
+      <span>Gemini 2.0 Benchmarks</span><span>·</span>
+      <span>Claude 4 Announced</span><span>·</span>
+      <span>OpenAI Dev Day Recap</span><span>·</span>
+      <span>Meta Llama 4 Drops</span><span>·</span>
+      <span>Mistral Raises $640M</span><span>·</span>
+      <span>AI Act Passes EU</span><span>·</span>
+      <span>Sora Goes Live</span><span>·</span>
+      <!-- duplicate for seamless loop -->
+      <span>GPT-5 Released</span><span>·</span>
+      <span>Gemini 2.0 Benchmarks</span><span>·</span>
+      <span>Claude 4 Announced</span><span>·</span>
+      <span>OpenAI Dev Day Recap</span><span>·</span>
+      <span>Meta Llama 4 Drops</span><span>·</span>
+      <span>Mistral Raises $640M</span><span>·</span>
+      <span>AI Act Passes EU</span><span>·</span>
+      <span>Sora Goes Live</span><span>·</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       WHAT YOU GET
+  ════════════════════════════════ -->
+  <section class="max-w-6xl mx-auto px-6 py-24 md:py-36">
+    <div class="reveal mb-16">
+      <p class="label mb-4">What's inside</p>
+      <h2 class="display" style="font-size: clamp(2rem, 5vw, 3.75rem); max-width: 18ch;">
+        Everything you need.<br/>
+        <span class="display-italic">Nothing you don't.</span>
+      </h2>
+    </div>
+
+    <div class="space-y-0">
+      <!-- Feature 1 -->
+      <div class="feature-card reveal flex flex-col md:flex-row md:items-start gap-4 md:gap-16">
+        <div class="label md:w-48 shrink-0 mt-1">Daily Briefings</div>
+        <div>
+          <p class="font-medium mb-1" style="font-size:1.0625rem;">One message, every morning.</p>
+          <p style="color:var(--ink-60); font-size:0.9375rem;">The top AI developments from the past 24 hours, distilled into what actually matters. No noise, no hype — just signal.</p>
+        </div>
+      </div>
+      <!-- Feature 2 -->
+      <div class="feature-card reveal flex flex-col md:flex-row md:items-start gap-4 md:gap-16">
+        <div class="label md:w-48 shrink-0 mt-1">Model Releases</div>
+        <div>
+          <p class="font-medium mb-1" style="font-size:1.0625rem;">Be first to know.</p>
+          <p style="color:var(--ink-60); font-size:0.9375rem;">New model drops, capability comparisons, and benchmark breakdowns — before they hit mainstream tech media.</p>
+        </div>
+      </div>
+      <!-- Feature 3 -->
+      <div class="feature-card reveal flex flex-col md:flex-row md:items-start gap-4 md:gap-16">
+        <div class="label md:w-48 shrink-0 mt-1">Tools & Products</div>
+        <div>
+          <p class="font-medium mb-1" style="font-size:1.0625rem;">The tools actually worth trying.</p>
+          <p style="color:var(--ink-60); font-size:0.9375rem;">Curated product launches and AI tools that are reshaping how people work, create, and build.</p>
+        </div>
+      </div>
+      <!-- Feature 4 -->
+      <div class="feature-card reveal flex flex-col md:flex-row md:items-start gap-4 md:gap-16">
+        <div class="label md:w-48 shrink-0 mt-1">Research & Papers</div>
+        <div>
+          <p class="font-medium mb-1" style="font-size:1.0625rem;">Research made readable.</p>
+          <p style="color:var(--ink-60); font-size:0.9375rem;">Key findings from labs and universities, explained without a PhD required.</p>
+        </div>
+      </div>
+      <!-- Feature 5 -->
+      <div class="feature-card reveal flex flex-col md:flex-row md:items-start gap-4 md:gap-16">
+        <div class="label md:w-48 shrink-0 mt-1">Industry Moves</div>
+        <div>
+          <p class="font-medium mb-1" style="font-size:1.0625rem;">Funding, hires, and strategy.</p>
+          <p style="color:var(--ink-60); font-size:0.9375rem;">The business layer of AI: who's raising, who's partnering, and where the big bets are being placed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       INVERTED CTA
+  ════════════════════════════════ -->
+  <section class="invert-section">
+    <div class="max-w-6xl mx-auto px-6 py-24 md:py-36 text-center">
+      <div class="reveal">
+        <p class="label mb-6" style="color:rgba(250,250,248,0.45);">Ready? It's free.</p>
+        <h2 class="display mb-8" style="font-size: clamp(2.5rem, 7vw, 6rem); color:var(--paper); max-width: 18ch; margin-left:auto; margin-right:auto;">
+          Stay above the<br/>
+          <span class="display-italic">AI noise.</span>
+        </h2>
+        <p class="mb-10 text-base md:text-lg max-w-md mx-auto" style="color:rgba(250,250,248,0.55); font-weight:300; line-height:1.75;">
+          Join thousands of readers who get their daily AI update delivered straight to WhatsApp.
+        </p>
+        <a href="https://tinyurl.com/mzds6sc8" target="_blank" rel="noopener noreferrer" class="btn-join" style="font-size:1rem; padding:1rem 2.25rem;">
+          <span class="wa-icon-wrap">
+            <span class="wa-ring"></span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.306A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.96 7.96 0 01-4.073-1.117l-.29-.173-3.007.789.803-2.927-.19-.302A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"/></svg>
+          </span>
+          Join AI Overground on WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       FOOTER
+  ════════════════════════════════ -->
+  <footer class="max-w-6xl mx-auto px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <span class="display" style="font-size:0.9375rem; letter-spacing:-0.01em;">AI Overground</span>
+    <p class="label text-center" style="color:var(--ink-60);">© 2026 AI Overground · Free daily AI updates on WhatsApp</p>
+    <a href="https://tinyurl.com/mzds6sc8" target="_blank" rel="noopener noreferrer"
+       class="label" style="color:var(--ink-60); text-decoration:underline; text-underline-offset:3px; transition: color 0.15s ease;"
+       onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-60)'">
+      Join the channel →
+    </a>
+  </footer>
+
+  <!-- ════════════════════════════════
+       SCROLL REVEAL SCRIPT
+  ════════════════════════════════ -->
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          // stagger siblings slightly
+          const siblings = [...entry.target.parentElement.querySelectorAll('.reveal')];
+          const idx = siblings.indexOf(entry.target);
+          setTimeout(() => entry.target.classList.add('visible'), idx * 80);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => io.observe(el));
+  </script>
+
+</body>
+</html>
